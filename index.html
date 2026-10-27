@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="data:,">
+<title>Race Tracker - ATP and WTA Race to the Finals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,700&family=IBM+Plex+Mono:wght@500;600&family=Public+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f4ee; --surface:#fffdf8; --surface2:#ede9dd; --ink:#17211b; --muted:#5c665f; --line:#ddd6c4;
+  --green:#205c40; --clay:#c05a2e;
+  --radius:14px;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --bg:#111713; --surface:#1a211c; --surface2:#232b25; --ink:#eef0e8; --muted:#a8b2a9; --line:#344038; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Public Sans",system-ui,sans-serif;line-height:1.55}
+.wrap{max-width:1020px;margin:0 auto;padding:24px 18px 40px}
+h1{font-family:"Fraunces",serif;font-size:30px;margin:0 0 8px;font-weight:700}
+.intro{font-size:16.5px;color:var(--muted);max-width:640px;margin:0}
+.intro strong{color:var(--ink)}
+.term{border:0;background:none;font:inherit;color:var(--green);font-weight:700;padding:0;cursor:pointer;border-bottom:1px dotted var(--green)}
+@media (prefers-color-scheme: dark){ .term{color:#8fd0ab;border-color:#8fd0ab} }
+.toggle-row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin:20px 0 12px}
+.toggle{display:inline-flex;background:var(--surface);border:1px solid var(--line);border-radius:999px;padding:4px}
+.toggle button{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:800;padding:9px 20px;border-radius:999px;cursor:pointer}
+.toggle button.active{background:var(--green);color:#fff}
+.hint{font-size:13px;color:var(--muted)}
+.cut-line{display:flex;flex-wrap:wrap;gap:8px 22px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 16px;margin-bottom:14px;font-size:15px}
+.cut-line .num{font-family:"IBM Plex Mono",monospace;font-weight:600}
+.table-shell{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{text-align:left;font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:11px 12px;border-bottom:1px solid var(--line);background:var(--surface2)}
+td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top}
+tr.cut-raw td{background:#fff7d6}
+@media (prefers-color-scheme: dark){ tr.cut-raw td{background:#2d2816} }
+tr.cut-effective td{background:#e6f0e8}
+@media (prefers-color-scheme: dark){ tr.cut-effective td{background:#1d2f24} }
+tr.out-row{opacity:.7}
+.rank{font-family:"IBM Plex Mono",monospace;font-weight:600}
+.player{font-weight:800}
+.pts{font-family:"IBM Plex Mono",monospace;font-weight:600;white-space:nowrap}
+.gap-pos{color:var(--green);font-weight:700;font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+.gap-neg{color:var(--clay);font-weight:700;font-family:"IBM Plex Mono",monospace;white-space:nowrap}
+@media (prefers-color-scheme: dark){ .gap-pos{color:#8fd0ab} }
+.badge{border:0;font:inherit;display:inline-block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;font-weight:800;padding:5px 9px;border-radius:999px;white-space:nowrap;cursor:pointer}
+.b-qualified{background:var(--green);color:#fff}
+.b-in{background:#dcefe2;color:#173f2d}
+.b-bubble{background:#fde9b8;color:#6b4e00}
+.b-chasing{background:#ffe2d1;color:#7a2f12}
+.b-alive{background:#dde8f0;color:#1d3f56}
+.b-out{background:#e8e2d6;color:#6b6252}
+.info-btn{border:1px solid var(--line);background:var(--surface);color:var(--muted);width:17px;height:17px;border-radius:50%;font-size:11px;font-weight:800;line-height:1;cursor:pointer;padding:0;margin-left:5px;vertical-align:2px}
+.info-btn:hover{color:var(--green);border-color:var(--green)}
+.note-bar{padding:11px 16px;font-size:13.5px;color:var(--muted);background:var(--surface)}
+footer{margin-top:18px;font-size:12.5px;color:var(--muted)}
+footer p{margin:4px 0}
+.modal-backdrop{position:fixed;inset:0;background:rgba(10,14,11,.55);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal-backdrop.open{display:flex}
+@media(min-width:640px){.modal-backdrop{align-items:center;padding:20px}}
+.modal{background:var(--surface);color:var(--ink);border-radius:16px;max-width:440px;width:100%;padding:22px 22px 18px;box-shadow:0 18px 50px rgba(0,0,0,.3)}
+.modal h2{font-family:"Fraunces",serif;font-size:22px;margin:0 0 8px}
+.modal p{margin:0;font-size:15.5px;color:var(--muted)}
+.modal p strong{color:var(--ink)}
+.modal-close{margin-top:16px;width:100%;border:0;background:var(--green);color:#fff;font:inherit;font-weight:800;padding:11px;border-radius:10px;cursor:pointer}
+.m-label{display:none}
+@media(max-width:760px){
+  table, thead, tbody, tr, td{display:block;width:100%}
+  thead{display:none}
+  tr{padding:12px 14px;border-bottom:1px solid var(--line)}
+  td{border:0;padding:4px 0;display:flex;justify-content:space-between;gap:16px;align-items:baseline}
+  td::before{content:attr(data-label);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:800;flex-shrink:0}
+  td.player-cell{display:block}
+  td.player-cell::before{display:block;margin-bottom:2px}
+  .m-label{display:inline-flex;align-items:center}
+  .m-label .info-btn{margin-left:4px}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>The race to the Finals</h1>
+  <p class="intro">All season, players earn points at each tournament. At the end of the year, the eight players with the most points qualify for one last event, the Finals. This table shows who is in, who is close, and what one more win is worth. Tap any <strong>?</strong> or status for a short explanation.</p>
+
+  <div class="toggle-row">
+    <div class="toggle" role="tablist" aria-label="Tour toggle">
+      <button id="btn-atp" class="active" onclick="setTour('atp')">ATP &bull; Men</button>
+      <button id="btn-wta" onclick="setTour('wta')">WTA &bull; Women</button>
+    </div>
+    <span class="hint">Top 20, as of Oct 26, 2026</span>
+  </div>
+
+  <div class="cut-line" id="cutLine"></div>
+
+  <section class="table-shell" aria-label="Race leaderboard">
+    <table>
+      <thead><tr>
+        <th>Race</th>
+        <th>Player</th>
+        <th>Race points<button class="info-btn" aria-label="Explain race points" onclick="explain('racepoints')">?</button></th>
+        <th>This week<button class="info-btn" aria-label="Explain this week" onclick="explain('thisweek')">?</button></th>
+        <th>Next win total<button class="info-btn" aria-label="Explain next win total" onclick="explain('nextwin')">?</button></th>
+        <th>Max this event<button class="info-btn" aria-label="Explain max this event" onclick="explain('maxevent')">?</button></th>
+        <th>Gap to cut<button class="info-btn" aria-label="Explain gap to cut" onclick="explain('gap')">?</button></th>
+        <th>Status<button class="info-btn" aria-label="Explain status" onclick="explain('status')">?</button></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="note-bar" id="tableNote"></div>
+  </section>
+
+  <footer>
+    <p id="sourceLine"></p>
+    <p>Points are a snapshot from Oct 26, 2026. They do not update on their own.</p>
+  </footer>
+</div>
+
+<div class="modal-backdrop" id="backdrop" onclick="if(event.target===this) closeModal()">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <h2 id="modalTitle"></h2>
+    <p id="modalBody"></p>
+    <button class="modal-close" onclick="closeModal()">Got it</button>
+  </div>
+</div>
+
+<script>
+var EXPLAIN = {
+  racepoints: ["Race points", "Points a player has earned this calendar year, starting from zero each January. Win a big tournament, earn a lot: a Grand Slam title is worth 2,000 points, a 500 level title is worth 500. The eight players with the most race points at the season cutoff go to the Finals. This is not the normal world ranking, which counts the last 52 weeks."],
+  thisweek: ["This week", "The tournament the player is in right now, and the round they have reached. R32 means the round of 32 players, R16 the round of 16. Each win moves them one round closer to the title and adds points."],
+  nextwin: ["Next win total", "The player's race points if they win their next match. For example, Zverev is on 9,150. One more win in Vienna takes him to 9,200."],
+  maxevent: ["Max this event", "The player's race points if they win the whole tournament this week. A title at a 500 level event like Vienna or Basel is worth 500 points in total for the week, so nobody can gain more than that here."],
+  gap: ["Gap to cut", "How many points a player is above or below the last qualifying spot, called the cut. A plus number means they are above it. A minus number means they still need that many points to reach it. De Minaur shows -229, so he needs 229 more points to catch the cut."],
+  status: ["Status", "A plain word for where a player stands. Qualified means their Finals place is locked in. In means they hold a spot right now. Bubble means they are right at the edge. Chasing and Alive mean they are below the cut but can still reach it. Out means they will not play the Finals. Tap any status in the table for its exact meaning."],
+  effectivecut: ["Effective cut", "The points total of the last player who would actually take a Finals spot. It can sit below rank 8 when a player above the line is out. On the ATP side, Sinner is ranked 2 but marked out, so the last spot drops to Jodar at rank 9 and the effective cut is 3,159, not 3,380."],
+  rawline: ["Raw rank 8 line", "The points total of the player sitting at rank 8, before anyone is removed. Only the top 8 qualify, so rank 8 is the simplest version of the line. Check the effective cut too, because an out player above the line moves the real line down."],
+  cutoff: ["Season cutoff", "The last tournament whose points still count toward this year's race. For the men, the race runs through the Paris Masters. For the women, Tokyo and Guangzhou were the last counting events, which is why the WTA field is already set. After the cutoff, the top 8 are final."],
+  st_qualified: ["Qualified", "This player's place at the Finals is locked in. Nobody can push them out, whatever happens in the remaining tournaments."],
+  st_in: ["In", "This player holds one of the eight Finals spots right now. They can still be pushed out if players below them win enough points before the cutoff."],
+  st_bubble: ["Bubble", "Right at the edge of the cut. A good week can move this player in, and a good week by someone just below can push them out."],
+  st_chasing: ["Chasing", "Below the cut, but close enough that a strong result this week can close the gap."],
+  st_alive: ["Alive", "Below the cut with more ground to make up. Still possible on points, but they need a big result and help from other results."],
+  st_out: ["Out", "This player will not take a Finals spot, even if their points total is high enough. Sinner is marked out on the ATP side, which is why the effective cut drops to the next player. On the WTA side, Swiatek's season has ended."],
+  st_outofreach: ["Out of reach", "Below the cut by more than one tournament win can close on these totals alone. The gap to the cut is bigger than the 500 points a title this week would add."],
+  st_holds: ["In, holds the cut", "This player holds the last Finals spot. Their points total is the effective cut that everyone below is chasing."]
+};
+function explain(key){
+  var e = EXPLAIN[key]; if(!e) return;
+  document.getElementById("modalTitle").textContent = e[0];
+  document.getElementById("modalBody").textContent = e[1];
+  document.getElementById("backdrop").classList.add("open");
+}
+function closeModal(){ document.getElementById("backdrop").classList.remove("open"); }
+document.addEventListener("keydown", function(ev){ if(ev.key === "Escape") closeModal(); });
+
+var ATP = [
+ {r:1,n:"Alexander Zverev",pts:9150,week:"Vienna R32",next:9200,max:9650,status:"In",badge:"b-in",sk:"st_in"},
+ {r:2,n:"Jannik Sinner",pts:7950,week:"No event listed",next:null,max:null,status:"Out",badge:"b-out",sk:"st_out"},
+ {r:3,n:"Carlos Alcaraz",pts:4600,week:"Vienna R32",next:4650,max:5100,status:"In",badge:"b-in",sk:"st_in"},
+ {r:4,n:"Ben Shelton",pts:4480,week:"Basel R32",next:4530,max:4980,status:"In",badge:"b-in",sk:"st_in"},
+ {r:5,n:"Daniil Medvedev",pts:3660,week:"Vienna R32",next:3710,max:4160,status:"In",badge:"b-in",sk:"st_in"},
+ {r:6,n:"Flavio Cobolli",pts:3640,week:"Vienna R32",next:3690,max:4140,status:"In",badge:"b-in",sk:"st_in"},
+ {r:7,n:"Arthur Fils",pts:3425,week:"Basel R32",next:3475,max:3925,status:"In",badge:"b-in",sk:"st_in"},
+ {r:8,n:"Frances Tiafoe",pts:3380,week:"Vienna R32",next:3430,max:3880,status:"In",badge:"b-in",sk:"st_in"},
+ {r:9,n:"Rafael Jodar",pts:3159,week:"Basel R32",next:3209,max:3659,status:"In - holds cut",badge:"b-in",sk:"st_holds"},
+ {r:10,n:"Alex de Minaur",pts:2930,week:"Vienna R16, beat Machac",next:2980,max:3380,status:"Bubble",badge:"b-bubble",sk:"st_bubble"},
+ {r:11,n:"Novak Djokovic",pts:2840,week:"Basel R32",next:2890,max:3340,status:"Bubble",badge:"b-bubble",sk:"st_bubble"},
+ {r:12,n:"Taylor Fritz",pts:2685,week:"Basel R32",next:2735,max:3185,status:"Chasing",badge:"b-chasing",sk:"st_chasing"},
+ {r:13,n:"Tommy Paul",pts:2675,week:"Vienna R32",next:2725,max:3175,status:"Chasing",badge:"b-chasing",sk:"st_chasing"},
+ {r:14,n:"Jakub Mensik",pts:2545,week:"Vienna R16, beat Neumayer",next:2595,max:2995,status:"Chasing",badge:"b-chasing",sk:"st_chasing"},
+ {r:15,n:"Felix Auger-Aliassime",pts:2465,week:"Not listed",next:null,max:null,status:"Alive",badge:"b-alive",sk:"st_alive"},
+ {r:16,n:"Alejandro Davidovich Fokina",pts:2450,week:"Not listed",next:null,max:null,status:"Alive",badge:"b-alive",sk:"st_alive"},
+ {r:17,n:"Brandon Nakashima",pts:2350,week:"Vienna R32",next:2400,max:2850,status:"Alive",badge:"b-alive",sk:"st_alive"},
+ {r:18,n:"Jiri Lehecka",pts:2250,week:"Basel R32",next:2300,max:2750,status:"Alive",badge:"b-alive",sk:"st_alive"},
+ {r:19,n:"Francisco Cerundolo",pts:2210,week:"Vienna R32",next:2260,max:2710,status:"Alive",badge:"b-alive",sk:"st_alive"},
+ {r:20,n:"Luciano Darderi",pts:2150,week:"Vienna R32",next:2200,max:2650,status:"Alive",badge:"b-alive",sk:"st_alive"}
+];
+var WTA = [
+ {r:1,n:"Elena Rybakina",pts:8001,week:"Not in snapshot",next:null,max:null,status:"Qualified",badge:"b-qualified",sk:"st_qualified"},
+ {r:2,n:"Aryna Sabalenka",pts:6550,week:"Not in snapshot",next:null,max:null,status:"Qualified",badge:"b-qualified",sk:"st_qualified"},
+ {r:3,n:"Mirra Andreeva",pts:6306,week:"Not in snapshot",next:null,max:null,status:"Qualified",badge:"b-qualified",sk:"st_qualified"},
+ {r:4,n:"Jessica Pegula",pts:5825,week:"Not in snapshot",next:null,max:null,status:"Qualified",badge:"b-qualified",sk:"st_qualified"},
+ {r:5,n:"Coco Gauff",pts:5773,week:"Not in snapshot",next:null,max:null,status:"Qualified",badge:"b-qualified",sk:"st_qualified"},
+ {r:6,n:"Elina Svitolina",pts:5229,week:"Not in snapshot",next:null,max:null,status:"Qualified",badge:"b-qualified",sk:"st_qualified"},
+ {r:7,n:"Karolina Muchova",pts:4725,week:"Not in snapshot",next:null,max:null,status:"Qualified",badge:"b-qualified",sk:"st_qualified"},
+ {r:8,n:"Linda Noskova",pts:4353,week:"Not in snapshot",next:null,max:null,status:"Qualified",badge:"b-qualified",sk:"st_qualified"},
+ {r:9,n:"Iga Swiatek",pts:4189,week:"Season ended",next:null,max:null,status:"Out",badge:"b-out",sk:"st_out"},
+ {r:10,n:"Marta Kostyuk",pts:3920,week:"Not in snapshot",next:null,max:null,status:"Chasing",badge:"b-chasing",sk:"st_chasing"},
+ {r:11,n:"Iva Jovic",pts:2941,week:"Not in snapshot",next:null,max:null,status:"Out of reach*",badge:"b-out",sk:"st_outofreach"},
+ {r:12,n:"Diana Shnaider",pts:2798,week:"Not in snapshot",next:null,max:null,status:"Out of reach*",badge:"b-out",sk:"st_outofreach"},
+ {r:13,n:"Maja Chwalinska",pts:2755,week:"Not in snapshot",next:null,max:null,status:"Out of reach*",badge:"b-out",sk:"st_outofreach"},
+ {r:14,n:"Elise Mertens",pts:2540,week:"Not in snapshot",next:null,max:null,status:"Out of reach*",badge:"b-out",sk:"st_outofreach"},
+ {r:15,n:"Victoria Mboko",pts:2393,week:"Not in snapshot",next:null,max:null,status:"Out of reach*",badge:"b-out",sk:"st_outofreach"},
+ {r:16,n:"Sorana Cirstea",pts:2386,week:"Not in snapshot",next:null,max:null,status:"Out of reach*",badge:"b-out",sk:"st_outofreach"},
+ {r:17,n:"Naomi Osaka",pts:2287,week:"Not in snapshot",next:null,max:null,status:"Out of reach*",badge:"b-out",sk:"st_outofreach"},
+ {r:18,n:"Belinda Bencic",pts:2222,week:"Not in snapshot",next:null,max:null,status:"Out of reach*",badge:"b-out",sk:"st_outofreach"},
+ {r:19,n:"Alexandra Eala",pts:2176,week:"Not in snapshot",next:null,max:null,status:"Out of reach*",badge:"b-out",sk:"st_outofreach"},
+ {r:20,n:"Madison Keys",pts:2029,week:"Not in snapshot",next:null,max:null,status:"Out of reach*",badge:"b-out",sk:"st_outofreach"}
+];
+var tour = "atp";
+function fmt(n){ return n===null ? null : n.toLocaleString("en-US"); }
+function setTour(t){ tour=t; document.getElementById("btn-atp").classList.toggle("active", t==="atp"); document.getElementById("btn-wta").classList.toggle("active", t==="wta"); render(); }
+function lbl(text, key){ return '<span class="m-label">'+text+'<button class="info-btn" aria-label="Explain '+text+'" onclick="explain(\''+key+'\')">?</button></span>'; }
+function render(){
+  var isATP = tour==="atp";
+  var data = isATP ? ATP : WTA;
+  var cut = isATP ? 3159 : 4353;
+  var rawPts = isATP ? 3380 : 4353;
+  document.getElementById("cutLine").innerHTML =
+    '<span><button class="term" onclick="explain(\'effectivecut\')">Effective cut</button>: <span class="num">'+fmt(cut)+'</span> ('+(isATP ? "Rafael Jodar, rank 9" : "Linda Noskova, rank 8")+')</span>' +
+    '<span><button class="term" onclick="explain(\'rawline\')">Raw rank 8 line</button>: <span class="num">'+fmt(rawPts)+'</span></span>' +
+    '<span><button class="term" onclick="explain(\'cutoff\')">Season cutoff</button>: '+(isATP ? "Paris Masters" : "Tokyo and Guangzhou, already played")+'</span>';
+  var html = "";
+  data.forEach(function(p){
+    var gap = p.pts - cut;
+    var gapTxt = (gap>=0 ? "+" : "-") + fmt(Math.abs(gap));
+    var rowCls = "";
+    if(isATP && p.r===8) rowCls="cut-raw";
+    if((isATP && p.r===9) || (!isATP && p.r===8)) rowCls="cut-effective";
+    if(p.status==="Out") rowCls += " out-row";
+    var nextTxt = p.next===null ? (isATP ? "Not listed" : "Pending") : fmt(p.next);
+    var maxTxt = p.max===null ? (isATP ? "Not listed" : "Pending") : fmt(p.max);
+    html += '<tr class="'+rowCls.trim()+'">' +
+      '<td data-label="Race"><span class="rank">'+p.r+'</span></td>' +
+      '<td data-label="Player" class="player-cell"><span class="player">'+p.n+'</span></td>' +
+      '<td data-label="Race points">'+lbl("Race points","racepoints")+'<span class="pts">'+fmt(p.pts)+'</span></td>' +
+      '<td data-label="This week">'+lbl("This week","thisweek")+'<span>'+p.week+'</span></td>' +
+      '<td data-label="Next win total">'+lbl("Next win total","nextwin")+'<span class="pts">'+nextTxt+'</span></td>' +
+      '<td data-label="Max this event">'+lbl("Max this event","maxevent")+'<span class="pts">'+maxTxt+'</span></td>' +
+      '<td data-label="Gap to cut">'+lbl("Gap to cut","gap")+'<span class="'+(gap>=0?"gap-pos":"gap-neg")+'">'+gapTxt+'</span></td>' +
+      '<td data-label="Status">'+lbl("Status","status")+'<button class="badge '+p.badge+'" onclick="explain(\''+p.sk+'\')">'+p.status+'</button></td></tr>';
+  });
+  document.getElementById("tbody").innerHTML = html;
+  document.getElementById("tableNote").textContent = isATP ?
+    "The pale row at rank 8 is the raw line. The green row at rank 9 is the effective cut, lower because Sinner is out. De Minaur and Mensik reached the Vienna R16 with wins on Oct 26." :
+    "The green row at rank 8 is both the raw line and the effective cut. Next win and max totals are marked Pending for WTA players. They were not in the verified snapshot, so they are not guessed.";
+  document.getElementById("sourceLine").textContent = isATP ?
+    "Source: Official ATP Live Race page, checked Oct 26, 2026." :
+    "Sources: Official WTA race table, cross-checked against live-tennis.eu, Oct 26, 2026.";
+}
+render();
+</script>
+</body>
+</html>
